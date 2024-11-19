@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Toner Details</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .toner-table {
+            max-width: 800px;
+            border-collapse: collapse;
+            border: none
+        }
+
+        .toner-table th, .toner-table td {
+            border-bottom: 1px solid #ddd;
+            border-top: 1px solid #ddd;
+            padding-bottom: 10px;
+            padding-top: 10px;
+            text-align: center
+        }
+
+        .toner-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        a {
+            color: #0038fa;
+            text-decoration: none;
+            font-size: 16px
+        }
+
+        /* Center the header title */
+        .order-title {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            padding-top: 5px;
+        }
+
+        /* Button positioned at the top left */
+        .top-left-home {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #333;
+                color: white;
+            }
+
+            select {
+                padding: 8px;
+                font-size: 1em;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+                background-color: #333;
+                color: white
+            }
+
+            .toner-table th {
+                background-color: #202022;
+                font-weight: bold;
+            }
+            a {
+                color: #94e6ff;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class = "order-title">
+        <h1>Toner Order Links</h1>
+    </div>
+
+    <div class="top-left-home">
+        <a class="home-button" href="/">
+            <img src="{{ url_for('static', filename='pictures/backbutton2.png') }}" alt="Home" style="width: 40px; height: 40px;">
+        </a>
+    </div>
+
+
+    <table class="toner-table">
+        <thead>
+            <tr>
+                <th>Toner Name</th>
+                <th>Qty</th>
+                <th>Single</th>
+                <th>Double</th>
+                <th>Multipack</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for toner_name, toner_qty, url_single, url_double, url_multi in toners %}
+            <tr>
+                <td>{{ toner_name }}</td>
+                <td>{{ toner_qty }}</td>
+                {% if url_single %}
+                    <td><a href="{{ url_single }}" target="_blank">Single</a></td>
+                {% endif %}
+                {% if url_double %}
+                    <td><a href="{{ url_double }}" target="_blank">Double</a></td>
+                {% else %}
+                    <td><p></p></td>
+                {% endif %}
+                {% if url_multi %}
+                    <td><a href="{{ url_multi }}" target="_blank">Multi</a></td>
+                {% else %}
+                    <td><p></p></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toner Stock</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        /* Button styling for quantity adjustments */
+        button {
+            width: 30px;
+            height: 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Button positioned at the top left */
+        .top-left-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: auto;
+            height: auto;
+        }
+
+        /* Center the header title */
+        .header-title {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+
+        /* Notification bar styling */
+        .notification {
+            background-color: #f8d7da;
+            color: #ec0101;
+            padding: 10px;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        /* Form and button styling */
+        form {
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .submitButton, .detailsButton {
+            padding: 8px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            height: auto;
+            width: auto;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+
+        /* Toner list container */
+        .toner-list {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 600px;
+            border-top: 1px solid #ddd;
+            margin-top: 20px;
+        }
+
+        /* Row and header styles */
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 1em;
+        }
+
+        .header {
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+
+        .toner-name, .quantity, .actions {
+            flex: 1;
+            text-align: center;
+        }
+
+        /* Quantity display and button alignment */
+        .quantity-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        select {
+            padding: 8px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 100%;
+        }
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #333;
+                color: white;
+            }
+
+            .header {
+                font-weight: bold;
+                background-color: #202022;
+            }
+
+            select {
+                border: 1px solid #ccc;
+                background-color: #333;
+                color: white;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Button aligned to the top left -->
+    <form action="/toner-details" class="top-left-button">
+        <button class="detailsButton" type="submit">Order <br>Links</button>
+    </form>
+
+    <!-- Centered title -->
+    <div class="header-title">
+        <h1>Toner Stock</h1>
+    </div>
+
+{% if out_of_stock_toners %}
+    <div class="notification">
+        <strong>WARNING:</strong> The following toners are out of stock:
+        {{ out_of_stock_toners | join(', ') }}
+    </div>
+{% endif %}
+
+
+    <!-- Printer selection and show all toners button -->
+    <form action="/" method="POST">
+        <select id="printers" name="printer" onchange="this.form.submit()">
+            <option value="" disabled {% if not selected_printer %}selected{% endif %}>Select a printer</option>
+            {% for printer_name, printer_model in printers %}
+                <option value="{{ printer_name }}" {% if selected_printer == printer_name %}selected{% endif %}>
+                    {{ printer_name }} - {{ printer_model }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <!-- Show all toners button -->
+    <form action="/" method="GET">
+        <button class="submitButton" type="submit">Show All Toners</button>
+    </form>
+
+
+    <!-- Display printer location if a printer is selected -->
+    {% if location %}
+        <div class="location">
+            <strong>Location:</strong> {{ location }}
+        </div>
+    {% endif %}
+
+
+    {% if printer_ip %}
+    <div class="printer-info">
+        <strong><a href="http://{{ printer_ip }}" target="_blank" style ="color: #94e6ff">{{ printer_ip }}</a></strong>
+    </div>
+    {% endif %}
+
+
+    <!-- Toner List -->
+    <div class="toner-list">
+        <div class="row header">
+            <div class="toner-name">Toner Name</div>
+            <div class="quantity">Quantity</div>
+            <div class="actions">Actions</div>
+        </div>
+
+        {% if selected_toners %}
+            {% for toner_name, toner_qty in selected_toners %}
+            <div class="row">
+                <div class="toner-name">{{ toner_name }}</div>
+                <div class="quantity">{{ toner_qty }}</div>
+                <div class="actions">
+                    <form action="/" method="POST" class="quantity-display">
+                        <input type="hidden" name="toner_name" value="{{ toner_name }}">
+                        <input type="hidden" name="printer" value="{{ selected_printer }}">
+                        <button type="submit" name="action" value="subtract"
+                        style="background-color: #FF4C4C; color: white; border: 1px solid #ccc; border-radius: 5px; width: 30px; height: 30px; font-size: 1em; cursor: pointer;"
+                        onmouseover="this.style.backgroundColor='#D93636';"
+                        onmouseout="this.style.backgroundColor='#FF4C4C';"> - </button>
+                        <button type="submit" name="action" value="add">+</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            {% for toner_name, toner_qty in toners %}
+            <div class="row">
+                <div class="toner-name">{{ toner_name }}</div>
+                <div class="quantity">{{ toner_qty }}</div>
+                <div class="actions">
+                    <form action="/" method="POST" class="quantity-display">
+                        <input type="hidden" name="toner_name" value="{{ toner_name }}">
+                        <button type="submit" name="action" value="subtract"
+                        style="background-color: #FF4C4C; color: white; border: 1px solid #ccc; border-radius: 5px; width: 30px; height: 30px; font-size: 1em; cursor: pointer;"
+                        onmouseover="this.style.backgroundColor='#D93636';"
+                        onmouseout="this.style.backgroundColor='#FF4C4C';"> - </button>
+                        <button type="submit" name="action" value="add">+</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>
